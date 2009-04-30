@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project [
-<!ENTITY baseBuild SYSTEM "../Build/baseBuild.xml.inc">
+<!ENTITY baseBuild SYSTEM "../org.homeunix.thecave.build/baseBuild.xml.inc">
 ]>
 <project name="Moss Crypto" default="jar" basedir=".">
 
