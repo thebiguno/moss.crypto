@@ -2,7 +2,7 @@
  * Created on Aug 20, 2007 by wyatt
  */
 
-package org.homeunix.thecave.moss.crypto;
+package ca.digitalcave.moss.crypto;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

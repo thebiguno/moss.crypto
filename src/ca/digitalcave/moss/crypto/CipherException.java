@@ -1,7 +1,7 @@
 /*
  * Created on Aug 20, 2007 by wyatt
  */
-package org.homeunix.thecave.moss.crypto;
+package ca.digitalcave.moss.crypto;
 
 public class CipherException extends Exception {
 	public static final long serialVersionUID = 0;
