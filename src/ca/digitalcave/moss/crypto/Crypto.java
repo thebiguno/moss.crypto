@@ -26,7 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @author wyatt
  *
  */
-public class CryptoUtil {
+public class Crypto {
 	private String rngAlgorithm = "SHA1PRNG";
 	private Algorithm algorithm = Algorithm.AES_128;
 	private int keySaltLength = 16;
@@ -40,7 +40,7 @@ public class CryptoUtil {
 			}
 		}
 		
-		CryptoUtil crypto = new CryptoUtil();
+		Crypto crypto = new Crypto();
 		crypto.setAlgorithm(Algorithm.DESede_168);
 		System.out.println(crypto.encrypt("secretsu", "Foobar"));
 		System.out.println(crypto.encrypt("secretsu", "Foobar"));
@@ -55,18 +55,24 @@ public class CryptoUtil {
 		System.out.println(decrypt(key, crypto.encrypt(key, "Foobar")));
 	}
 	
-	private PBEKeySpec generateKeySpec(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+	private PBEKeySpec generateKeySpec(String password) throws CryptoException {
 		return new PBEKeySpec(password.toCharArray(), getRandomSalt(), keyIterations, algorithm.keyLength);
 	}
 	
-	public Key generateKey(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+	public Key generateKey(String password) throws CryptoException {
 		return recoverKey(algorithm, generateKeySpec(password));
 	}
 	
-	public static Key recoverKey(Algorithm algorithm, PBEKeySpec keySpec) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(algorithm.keyFactoryAlgorithm);
-		final Key tmp = keyFactory.generateSecret(keySpec);
-		return new SecretKeySpec(tmp.getEncoded(), algorithm.keyAlgorithm);
+	public static Key recoverKey(Algorithm algorithm, PBEKeySpec keySpec) throws CryptoException {
+		try {
+			final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(algorithm.keyFactoryAlgorithm);
+			final Key tmp = keyFactory.generateSecret(keySpec);
+			return new SecretKeySpec(tmp.getEncoded(), algorithm.keyAlgorithm);
+		} catch (InvalidKeySpecException e) {
+			throw new CryptoException(e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new CryptoException(e);
+		}
 	}
 	
 	/**
@@ -90,9 +96,9 @@ public class CryptoUtil {
 			final StringBuilder sb = new StringBuilder();
 			sb.append(algorithm.id);
 			sb.append(":");
-			sb.append(EncodeUtil.encode(iv));
+			sb.append(Base64.encode(iv));
 			sb.append(":");
-			sb.append(EncodeUtil.encode(out));
+			sb.append(Base64.encode(out));
 			
 			return sb.toString();
 		}
@@ -119,7 +125,7 @@ public class CryptoUtil {
 			final StringBuilder sb = new StringBuilder();
 			sb.append(keySpec.getIterationCount());
 			sb.append(":");
-			sb.append(EncodeUtil.encode(keySpec.getSalt()));
+			sb.append(Base64.encode(keySpec.getSalt()));
 			sb.append(":");
 			sb.append(encrypt(key, plainText));
 			
@@ -138,8 +144,8 @@ public class CryptoUtil {
 		}
 
 		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[0]));
-		final byte[] iv = EncodeUtil.decode(split[1]);
-		final byte[] in = EncodeUtil.decode(split[2]);
+		final byte[] iv = Base64.decode(split[1]);
+		final byte[] in = Base64.decode(split[2]);
 
 		try {
 			final Cipher c = Cipher.getInstance(algorithm.cipherAlgorithm);
@@ -159,7 +165,7 @@ public class CryptoUtil {
 		}
 		
 		final int iterations = Integer.parseInt(split[0]);
-		final byte[] salt = EncodeUtil.decode(split[1]);
+		final byte[] salt = Base64.decode(split[1]);
 		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[2]));
 
 		// recover the iv
@@ -198,32 +204,36 @@ public class CryptoUtil {
 		return rngAlgorithm;
 	}
 
-	public void setRngAlgorithm(String rngAlgorithm) {
+	public Crypto setRngAlgorithm(String rngAlgorithm) {
 		this.rngAlgorithm = rngAlgorithm;
+		return this;
 	}
 
 	public Algorithm getAlgorithm() {
 		return algorithm;
 	}
 	
-	public void setAlgorithm(Algorithm algorithm) {
+	public Crypto setAlgorithm(Algorithm algorithm) {
 		this.algorithm = algorithm;
+		return this;
 	}
 
 	public int getKeySaltLength() {
 		return keySaltLength;
 	}
 
-	public void setKeySaltLength(int saltLength) {
+	public Crypto setKeySaltLength(int saltLength) {
 		this.keySaltLength = saltLength;
+		return this;
 	}
 
 	public int getKeyIterations() {
 		return keyIterations;
 	}
 
-	public void setKeyIterations(int iterations) {
+	public Crypto setKeyIterations(int iterations) {
 		this.keyIterations = iterations;
+		return this;
 	}
 
 	public enum Algorithm {
