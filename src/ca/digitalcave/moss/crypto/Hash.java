@@ -14,11 +14,11 @@ public class Hash {
 	/**
 	 * Returns a string in the format "algorithm:iterations:salt:hash".
 	 */
-	public String generateHash(String message) {
-		return generateHash(getRandomSalt(), message);
+	public String generate(String message) {
+		return generate(getRandomSalt(), message);
 	}
 	
-	private String generateHash(byte[] salt, String message) {
+	private String generate(byte[] salt, String message) {
 		try {
 			final MessageDigest digest = MessageDigest.getInstance(algorithm);
 			final byte[] messageBytes = message.getBytes();
@@ -46,14 +46,14 @@ public class Hash {
 		}
 	}
 
-	public static boolean verifyHash(String hash, String message) {
+	public static boolean verify(String hash, String message) {
 		final int a = hash.indexOf(':');
 		final int b = hash.indexOf(':', a + 1);
 		final int c = hash.indexOf(':', b + 1);
 		final String algorithm = hash.substring(0, a);
 		final int iterations = Integer.parseInt(hash.substring(a + 1, b), 16);
 		final byte[] salt = Base64.decode(hash.substring(b + 1, c));
-		final String calc = new Hash().setAlgorithm(algorithm).setIterations(iterations).generateHash(salt, message);
+		final String calc = new Hash().setAlgorithm(algorithm).setIterations(iterations).generate(salt, message);
 		return hash.equalsIgnoreCase(calc);
 	}
 	
