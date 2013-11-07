@@ -1,20 +1,24 @@
 package ca.digitalcave.moss.crypto;
 
 import java.io.ByteArrayOutputStream;
+import java.util.BitSet;
+
+import sun.misc.BASE64Encoder;
 
 public class Base64 {
 
 	private static final String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 	public static void main(String[] args) {
-		System.out.println(encode("foo".getBytes()));
-		System.out.println(encode("foo1".getBytes()));
-		System.out.println(encode("foo12".getBytes()));
-		System.out.println(new String(decode(encode("foo".getBytes()))));
-		System.out.println(new String(decode(encode("foo1".getBytes()))));
-		System.out.println(new String(decode(encode("foo12".getBytes()))));
-		System.out.println(encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".getBytes()));
-		System.out.println(new String(decode(encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".getBytes()))));
+		final byte[] t = new byte[255];
+		for (byte i = -128; i < 127; i++) t[i+128] = i;
+		System.out.println(new BASE64Encoder().encode(t));
+		System.out.println(encode(t,true));
+		final byte[] x = decode("gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4\nubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx\n8vP09fb3+Pn6+/z9/v8AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkq\nKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJj\nZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+");
+		for (int i = 0; i < x.length; i++) {
+			System.out.print(x[i] + ",");
+		}
+		
 	}
 	
 	
@@ -53,7 +57,8 @@ public class Base64 {
 			}
 
 			// these three 8-bit (ASCII) characters become one 24-bit number
-			int n = (padded[i] << 16) + (padded[i + 1] << 8) + (padded[i + 2]);
+			final BitSet bs = BitSet.valueOf(new byte[] { padded[i+2], padded[i+1], padded[i] });
+			int n = (int) bs.toLongArray()[0];
 
 			// this 24-bit number gets separated into four 6-bit numbers
 			int n1 = (n >> 18) & 63, n2 = (n >> 12) & 63, n3 = (n >> 6) & 63, n4 = n & 63;
@@ -99,6 +104,8 @@ public class Base64 {
 		}
 
 		// remove any zero pad that was added to make this a multiple of 24 bits
-		return result.toByteArray();
+		final byte[] b = new byte[result.size() - p.length()];
+		System.arraycopy(result.toByteArray(), 0, b, 0, b.length);
+		return b;
 	}
 }
