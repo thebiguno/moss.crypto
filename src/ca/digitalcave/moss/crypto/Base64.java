@@ -1,7 +1,8 @@
 package ca.digitalcave.moss.crypto;
 
 import java.io.ByteArrayOutputStream;
-import java.util.BitSet;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import sun.misc.BASE64Encoder;
 
@@ -10,11 +11,16 @@ public class Base64 {
 	private static final String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 	public static void main(String[] args) {
-		final byte[] t = new byte[255];
-		for (byte i = -128; i < 127; i++) t[i+128] = i;
-		System.out.println(new BASE64Encoder().encode(t));
-		System.out.println(encode(t,true));
-		final byte[] x = decode("gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4\nubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx\n8vP09fb3+Pn6+/z9/v8AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkq\nKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJj\nZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+");
+		final byte[] t = new byte[256];
+		for (int i = -128; i <= 127; i++) t[i+128] = (byte) i;
+		final String sunEncoding = new BASE64Encoder().encode(t);
+		final String mossEncoding = encode(t,true);
+		System.out.println(sunEncoding);
+		System.out.println(mossEncoding);
+		System.out.println("Moss encoding verified: " + (sunEncoding.equals(mossEncoding)));
+		System.out.println(mossEncoding.trim().length());
+		System.out.println(sunEncoding.trim().length());
+		final byte[] x = decode(sunEncoding);
 		for (int i = 0; i < x.length; i++) {
 			System.out.print(x[i] + ",");
 		}
@@ -48,17 +54,24 @@ public class Base64 {
 			break;
 		}
 
-		// increment over the length of the string, three characters at a time
+		// increment over the length of the string, three characters at a time.  Use a byte buffer to convert from 
+		// bytes to integers.
+		final ByteBuffer buffer = ByteBuffer.allocate(4);
+		buffer.order(ByteOrder.BIG_ENDIAN);
+
 		for (int i = 0; i < padded.length; i += 3) {
 
 			if (newlines) {
 				// add newlines after every 76 output characters, according to the MIME specs
-				if (i > 0 && (i / 3 * 4) % 76 == 0) result.append("\r\n");
+				if (i > 0 && (i / 3 * 4) % 76 == 0) result.append("\n");
 			}
 
-			// these three 8-bit (ASCII) characters become one 24-bit number
-			final BitSet bs = BitSet.valueOf(new byte[] { padded[i+2], padded[i+1], padded[i] });
-			int n = (int) bs.toLongArray()[0];
+			// these three 8-bit (ASCII) characters become one 24-bit number.  We add a 0x00 byte to bad the 32 bit int.
+			buffer.clear();
+			buffer.put((byte) 0x00);
+			buffer.put(padded, i, 3);
+			buffer.position(0);
+			int n = buffer.getInt();
 
 			// this 24-bit number gets separated into four 6-bit numbers
 			int n1 = (n >> 18) & 63, n2 = (n >> 12) & 63, n3 = (n >> 6) & 63, n4 = n & 63;
