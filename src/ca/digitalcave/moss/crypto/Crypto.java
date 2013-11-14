@@ -29,7 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class Crypto {
 	private String rngAlgorithm = "SHA1PRNG";
 	private Algorithm algorithm = Algorithm.AES_128;
-	private int keySaltLength = 16;
+	private int saltLength = 16;
 	private int keyIterations = 1;
 
 	public static void main(String[] args) throws Exception {
@@ -183,8 +183,8 @@ public class Crypto {
 		}
 	}
 
-	private byte[] getRandomSalt() {
-		final byte[] salt = new byte[keySaltLength];
+	public byte[] getRandomSalt() {
+		final byte[] salt = new byte[saltLength];
 		try {
 			final SecureRandom r = SecureRandom.getInstance(rngAlgorithm);
 			r.nextBytes(salt);
@@ -218,12 +218,12 @@ public class Crypto {
 		return this;
 	}
 
-	public int getKeySaltLength() {
-		return keySaltLength;
+	public int getSaltLength() {
+		return saltLength;
 	}
 
-	public Crypto setKeySaltLength(int saltLength) {
-		this.keySaltLength = saltLength;
+	public Crypto setSaltLength(int saltLength) {
+		this.saltLength = saltLength;
 		return this;
 	}
 
