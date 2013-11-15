@@ -20,6 +20,8 @@ import javax.crypto.spec.SecretKeySpec;
  * 		Cipher text Format: "algorithmId:IV:cipherText"
  *  2) Generate fully encapsulated cipher text for keys generated from a password
  * 		Cipher text Format: "iterations:salt:algorithmId:IV:cipherText"
+ *  3) Generate fully encapsulated key spec from a password
+ * 		Format: "iterations:salt:algorithmId
  *  3) Generate keys from a password
  *  4) Decrypt the encapsulated cipher text using either password or key (depending on which of the encryption methods was used)
  * 
@@ -55,7 +57,7 @@ public class Crypto {
 		System.out.println(decrypt(key, crypto.encrypt(key, "Foobar")));
 	}
 	
-	private PBEKeySpec generateKeySpec(String password) throws CryptoException {
+	public PBEKeySpec generateKeySpec(String password) throws CryptoException {
 		return new PBEKeySpec(password.toCharArray(), getRandomSalt(), keyIterations, algorithm.keyLength);
 	}
 	
@@ -73,6 +75,23 @@ public class Crypto {
 		} catch (NoSuchAlgorithmException e) {
 			throw new CryptoException(e);
 		}
+	}
+	
+	public String encodeKeySpec(PBEKeySpec keySpec) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(keySpec.getIterationCount());
+		sb.append(":");
+		sb.append(Base64.encode(keySpec.getSalt()));
+		sb.append(":");
+		sb.append(algorithm.id);
+		return sb.toString();
+	}
+	public static PBEKeySpec recoverKeySpec(String encoded, String password) throws CryptoException {
+		final String[] split = encoded.split(":");
+		final int iterations = Integer.parseInt(split[0]);
+		final byte[] salt = Base64.decode(split[1]);
+		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[2]));
+		return new PBEKeySpec(password.toCharArray(), salt, iterations, algorithm.keyLength);
 	}
 	
 	/**
@@ -109,7 +128,7 @@ public class Crypto {
 	
 	/**
 	 * Encrypts a value using a password.  The encrypted form includes the Algorithm, key length, 
-	 * iteration count, sald, IV, and the encrypted value, as an encoded string, with colons 
+	 * iteration count, salt, IV, and the encrypted value, as an encoded string, with colons 
 	 * separating the parts.
 	 * @param password
 	 * @param plainText
