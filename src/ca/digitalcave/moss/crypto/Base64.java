@@ -4,29 +4,26 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import sun.misc.BASE64Encoder;
-
 public class Base64 {
 
 	private static final String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	public static void main(String[] args) {
-		final byte[] t = new byte[256];
-		for (int i = -128; i <= 127; i++) t[i+128] = (byte) i;
-		final String sunEncoding = new BASE64Encoder().encode(t);
-		final String mossEncoding = encode(t,true);
-		System.out.println(sunEncoding);
-		System.out.println(mossEncoding);
-		System.out.println("Moss encoding verified: " + (sunEncoding.equals(mossEncoding)));
-		System.out.println(mossEncoding.trim().length());
-		System.out.println(sunEncoding.trim().length());
-		final byte[] x = decode(sunEncoding);
-		for (int i = 0; i < x.length; i++) {
-			System.out.print(x[i] + ",");
-		}
-		
-	}
-	
+//	public static void main(String[] args) {
+//		final byte[] t = new byte[256];
+//		for (int i = -128; i <= 127; i++) t[i+128] = (byte) i;
+//		final String sunEncoding = new BASE64Encoder().encode(t);
+//		final String mossEncoding = encode(t,true);
+//		System.out.println(sunEncoding);
+//		System.out.println(mossEncoding);
+//		System.out.println("Moss encoding verified: " + (sunEncoding.equals(mossEncoding)));
+//		System.out.println(mossEncoding.trim().length());
+//		System.out.println(sunEncoding.trim().length());
+//		final byte[] x = decode(sunEncoding);
+//		for (int i = 0; i < x.length; i++) {
+//			System.out.print(x[i] + ",");
+//		}
+//		
+//	}
 	
 	public static String encode(final byte[] raw) {
 		return encode(raw, false);
