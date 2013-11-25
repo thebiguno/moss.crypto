@@ -179,27 +179,55 @@ public class Crypto {
 	public static String decrypt(String password, String value) throws CryptoException {
 		if (value == null) return null;
 		String[] split = value.split(":");
-		if (split.length != 5) {
-			throw new CryptoException("Invalid cyphertext");
-		}
-		
-		final int iterations = Integer.parseInt(split[0]);
-		final byte[] salt = Base64.decode(split[1]);
-		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[2]));
+		if (split.length == 5) {
+			final int iterations = Integer.parseInt(split[0]);
+			final byte[] salt = Base64.decode(split[1]);
+			final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[2]));
 
-		// recover the iv
-		final String iv = split[3];
+			// recover the iv
+			final String iv = split[3];
 
-		// recover the cyphertext
-		final String in = split[4];
+			// recover the cyphertext
+			final String in = split[4];
 
-		try {
-			final PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterations, algorithm.keyLength);
-			return decrypt(recoverKey(algorithm, keySpec), algorithm.id + ":" + iv + ":" + in);
+			try {
+				final PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterations, algorithm.keyLength);
+				return decrypt(recoverKey(algorithm, keySpec), algorithm.id + ":" + iv + ":" + in);
+			}
+			catch (Exception e){
+				throw new CryptoException(e);
+			}
 		}
-		catch (Exception e){
-			throw new CryptoException(e);
+		else if (split.length == 4){
+			//Backwards compatibility for legacy Buddi Live encryption.  Eventually this will be deleted.
+
+			// recover the salt
+			final int iterations = Integer.parseInt(split[0]);
+
+			// recover the salt
+			final byte[] salt = Base64.decode(split[1]);
+
+			// recover the iv
+			final byte[] iv = Base64.decode(split[2]);
+
+			// recover the cyphertext
+			final byte[] in = Base64.decode(split[3]);
+
+			try {
+				final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+				final PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterations, 256);
+				final Key tmp = keyFactory.generateSecret(keySpec);
+				final Key key = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+				final Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+				c.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+				return new String(c.doFinal(in), "UTF-8");
+			}
+			catch (Exception e){
+				throw new CryptoException(e);
+			}
 		}
+		throw new CryptoException("Invalid cyphertext");
 	}
 
 	public byte[] getRandomSalt() {
