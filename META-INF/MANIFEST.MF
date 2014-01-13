@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Crypto
+Bundle-SymbolicName: ca.digitalcave.moss.crypto
+Bundle-Version: 1.0.0.qualifier
+Export-Package: ca.digitalcave.moss.crypto
