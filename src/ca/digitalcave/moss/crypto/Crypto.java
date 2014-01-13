@@ -86,7 +86,7 @@ public class Crypto {
 	 * @return
 	 * @throws CryptoException
 	 */
-	public static String encodeSecretKey(SecretKey key) throws CryptoException {
+	public static String encodeSecretKey(SecretKey key) {
 		return key.getAlgorithm() + ":" + Base64.encode(key.getEncoded());
 	}
 	/**
@@ -110,9 +110,8 @@ public class Crypto {
 	 * Generate a new PBE KeySpec, using parameters defined in the specified algorithm, and random salt.
 	 * @param password
 	 * @return
-	 * @throws CryptoException
 	 */
-	public PBEKeySpec generatePBEKeySpec(String password) throws CryptoException {
+	public PBEKeySpec generatePBEKeySpec(String password) {
 		return new PBEKeySpec(password.toCharArray(), getRandomSalt(), keyIterations, algorithm.keyLength);
 	}
 	/**
