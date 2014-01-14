@@ -73,7 +73,7 @@ public class Crypto {
 		try {
 			KeyGenerator generator = KeyGenerator.getInstance(algorithm.keyAlgorithm);
 			generator.init(algorithm.keyLength);
-			return (SecretKeySpec) generator.generateKey();
+			return generator.generateKey();
 		}
 		catch (NoSuchAlgorithmException e){
 			throw new CryptoException(e);
