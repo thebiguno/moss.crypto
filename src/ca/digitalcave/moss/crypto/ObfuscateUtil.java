@@ -2,6 +2,7 @@ package ca.digitalcave.moss.crypto;
 
 public class ObfuscateUtil {
 	public static String obfuscate(String s) {
+		if (s == null) return null;
 		final StringBuilder sb = new StringBuilder();
 		byte[] b = s.getBytes();
 
@@ -27,6 +28,7 @@ public class ObfuscateUtil {
 	}
 
 	public static String deobfuscate(String s) {
+		if (s == null) return null;
 		if (s.startsWith("OBF:")) {
 			s = s.substring(4);
 	
