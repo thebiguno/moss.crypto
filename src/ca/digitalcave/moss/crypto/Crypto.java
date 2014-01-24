@@ -200,6 +200,7 @@ public class Crypto {
 	 * @throws CryptoException
 	 */
 	public String encrypt(Key key, String plainText) throws CryptoException {
+		if (plainText == null) return null;
 		try {
 			return encryptBytes(key, plainText.getBytes("UTF-8"));
 		}
