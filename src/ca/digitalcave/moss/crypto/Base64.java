@@ -3,31 +3,29 @@ package ca.digitalcave.moss.crypto;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Base64 {
 
 	private static final String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	private static Pattern nonBase64Chars = Pattern.compile("[^" + BASE64_CHARS + "=]");
 
-//	public static void main(String[] args) {
-//		final byte[] t = new byte[256];
-//		for (int i = -128; i <= 127; i++) t[i+128] = (byte) i;
-//		final String sunEncoding = new BASE64Encoder().encode(t);
-//		final String mossEncoding = encode(t,true);
-//		System.out.println(sunEncoding);
-//		System.out.println(mossEncoding);
-//		System.out.println("Moss encoding verified: " + (sunEncoding.equals(mossEncoding)));
-//		System.out.println(mossEncoding.trim().length());
-//		System.out.println(sunEncoding.trim().length());
-//		final byte[] x = decode(sunEncoding);
-//		for (int i = 0; i < x.length; i++) {
-//			System.out.print(x[i] + ",");
-//		}
-//		
-//	}
-	
+	/**
+	 * Encodes the given byte array as a Base64 string, without newlines.
+	 * @param raw
+	 * @return
+	 */
 	public static String encode(final byte[] raw) {
 		return encode(raw, false);
 	}
+
+	/**
+	 * Encodes the given byte array as a Base64 string.
+	 * @param raw
+	 * @param newlines
+	 * @return
+	 */
 	public static String encode(final byte[] raw, boolean newlines) {
 		final StringBuilder result = new StringBuilder();
 		final String padding;
@@ -83,28 +81,31 @@ public class Base64 {
 		result.replace(result.length() - padding.length(), result.length(), padding);
 		return result.toString();
 	}
+	
 	public static byte[] decode(String encoded) {
 		final ByteArrayOutputStream result = new ByteArrayOutputStream();
 		// remove/ignore any characters not in the base64 characters list
 		// or the pad character -- particularly newlines
-		encoded = encoded.replaceAll("[^" + BASE64_CHARS + "=]", "");
+		final Matcher m = nonBase64Chars.matcher(encoded);
+		final StringBuilder sb = new StringBuilder(m.replaceAll(""));
 
 		// replace any incoming padding with a zero pad (the 'A' character is zero)
-		final String p = (encoded.charAt(encoded.length() - 1) == '=' ? 
-				(encoded.charAt(encoded.length() - 2) == '=' ? "AA" : "A") : "");
-		encoded = encoded.substring(0, encoded.length() - p.length()) + p;
+		final String p = (sb.charAt(sb.length() - 1) == '=' ? 
+				(sb.charAt(sb.length() - 2) == '=' ? "AA" : "A") : "");
+		sb.delete(sb.length() - p.length(), sb.length());
+		sb.append(p);
 
 		// increment over the length of this encrypted string, four characters
 		// at a time
-		for (int c = 0; c < encoded.length(); c += 4) {
+		for (int c = 0; c < sb.length(); c += 4) {
 
 			// each of these four characters represents a 6-bit index in the
 			// base64 characters list which, when concatenated, will give the
 			// 24-bit number for the original 3 characters
-			int n = (BASE64_CHARS.indexOf(encoded.charAt(c)) << 18)
-					+ (BASE64_CHARS.indexOf(encoded.charAt(c + 1)) << 12)
-					+ (BASE64_CHARS.indexOf(encoded.charAt(c + 2)) << 6)
-					+ BASE64_CHARS.indexOf(encoded.charAt(c + 3));
+			int n = (BASE64_CHARS.indexOf(sb.charAt(c)) << 18)
+					+ (BASE64_CHARS.indexOf(sb.charAt(c + 1)) << 12)
+					+ (BASE64_CHARS.indexOf(sb.charAt(c + 2)) << 6)
+					+ BASE64_CHARS.indexOf(sb.charAt(c + 3));
 
 			// split the 24-bit number into the original three 8-bit (ASCII)
 			// characters
