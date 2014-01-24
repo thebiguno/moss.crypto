@@ -1,5 +1,6 @@
 package ca.digitalcave.moss.crypto;
 
+import java.io.UnsupportedEncodingException;
 import java.security.AlgorithmParameters;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -188,6 +189,23 @@ public class Crypto {
 	 * @throws CryptoException
 	 */
 	public String encrypt(Key key, String plainText) throws CryptoException {
+		try {
+			return encryptBytes(key, plainText.getBytes("UTF-8"));
+		}
+		catch (UnsupportedEncodingException e){
+			throw new CryptoException(e);
+		}
+	}
+	
+	/**
+	 * Encrypts a byte array using an existing Key object.  The encrypted form includes the IV and the 
+	 * encrypted value, as an encoded string, with colons separating the parts.
+	 * @param key
+	 * @param plainText
+	 * @return
+	 * @throws CryptoException
+	 */
+	public String encryptBytes(Key key, byte[] plainText) throws CryptoException {
 		if (plainText == null) return null;
 		try {
 			final Cipher c = Cipher.getInstance(algorithm.cipherAlgorithm);
@@ -195,7 +213,7 @@ public class Crypto {
 			final AlgorithmParameters p = c.getParameters();
 
 			final byte[] iv = p == null ? new byte[0] : p.getParameterSpec(IvParameterSpec.class).getIV();
-			final byte[] out = c.doFinal(plainText.getBytes("UTF-8"));
+			final byte[] out = c.doFinal(plainText);
 
 			final StringBuilder sb = new StringBuilder();
 			sb.append(algorithm.id);
@@ -245,6 +263,15 @@ public class Crypto {
 	}
 
 	public static String decrypt(Key key, String encrypted) throws CryptoException {
+		try {
+			return new String(decryptBytes(key, encrypted), "UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new CryptoException(e);
+		}
+	}
+	
+	public static byte[] decryptBytes(Key key, String encrypted) throws CryptoException {
 		if (encrypted == null) return null;
 		String[] split = encrypted.split(":");
 		if (split.length != 3) {
@@ -258,7 +285,7 @@ public class Crypto {
 		try {
 			final Cipher c = Cipher.getInstance(algorithm.cipherAlgorithm);
 			c.init(Cipher.DECRYPT_MODE, key, iv.length == 0 ? null : new IvParameterSpec(iv));
-			return new String(c.doFinal(in), "UTF-8");
+			return c.doFinal(in);
 		}
 		catch (Exception e){
 			throw new CryptoException(e);
