@@ -275,6 +275,7 @@ public class Crypto {
 	}
 
 	public static String decrypt(Key key, String encrypted) throws CryptoException {
+		if (encrypted == null) return null;
 		try {
 			return new String(decryptBytes(key, encrypted), "UTF-8");
 		}
