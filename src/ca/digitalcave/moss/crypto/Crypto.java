@@ -108,6 +108,7 @@ public class Crypto {
 	 * @throws CryptoException
 	 */
 	public static SecretKey recoverSecretKey(String encoded) throws CryptoException {
+		if (encoded == null) throw new CryptoException("Invalid secret key");
 		final String[] split = encoded.split(":");
 		if (split.length != 2) throw new CryptoException("Invalid secret key");
 		final String algorithm = split[0];
@@ -151,6 +152,7 @@ public class Crypto {
 	 * @throws CryptoException
 	 */
 	public static PBEKeySpec recoverPBEKeySpec(String encoded, String password) throws CryptoException {
+		if (encoded == null) throw new CryptoException("Invalid PBE key");
 		final String[] split = encoded.split(":");
 		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[0]));
 		final int iterations = Integer.parseInt(split[1]);
