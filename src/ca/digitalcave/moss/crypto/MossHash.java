@@ -44,7 +44,7 @@ public class MossHash extends Hash {
 		final int iterations = Integer.parseInt(hash.substring(a + 1, b), 16);
 		final byte[] salt = Base64.decode(hash.substring(b + 1, c));
 		final String calc = new MossHash().setAlgorithm(algorithm).setIterations(iterations).generate(salt, message);
-		return hash.equalsIgnoreCase(calc);
+		return hash.equals(calc);
 	}
 	
 	public String getAlgorithm() {
