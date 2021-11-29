@@ -293,11 +293,11 @@ public class Crypto {
 			throw new CryptoException("Invalid cyphertext");
 		}
 
-		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[0]));
-		final byte[] iv = Base64.decode(split[1]);
-		final byte[] in = Base64.decode(split[2]);
-
 		try {
+			final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[0]));
+			final byte[] iv = Base64.decode(split[1]);
+			final byte[] in = Base64.decode(split[2]);
+			
 			final Cipher c = getCipher(algorithm);
 			c.init(Cipher.DECRYPT_MODE, key, iv.length == 0 ? null : new IvParameterSpec(iv));
 			return c.doFinal(in);
