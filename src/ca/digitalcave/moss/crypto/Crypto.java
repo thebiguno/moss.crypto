@@ -6,12 +6,9 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.util.EnumMap;
-import java.util.Map;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -38,14 +35,6 @@ public class Crypto {
 	private int saltLength = 16;
 	private int keyIterations = 1;
 	
-	//Cached ciphers by algorithm; profiling indicates that Cipher.getInstance actually takes a while when 
-	// called numerous times (as when decrypting many items).  Speed this up with a cache.
-	private static final ThreadLocal<Map<Algorithm, Cipher>> ciphers = new ThreadLocal<Map<Algorithm,Cipher>>(){
-		protected java.util.Map<Algorithm,Cipher> initialValue() {
-			return new EnumMap<Algorithm, Cipher>(Algorithm.class);
-		};
-	};
-
 	public static void main(String[] args) throws Exception {
 		Crypto crypto = new Crypto();
 		crypto.setAlgorithm(Algorithm.AES_256);
@@ -222,7 +211,7 @@ public class Crypto {
 	public String encryptBytes(Key key, byte[] plainText) throws CryptoException {
 		if (plainText == null) return null;
 		try {
-			final Cipher c = getCipher(algorithm);
+			final Cipher c = Cipher.getInstance(algorithm.cipherAlgorithm);
 			c.init(Cipher.ENCRYPT_MODE, key);
 			final AlgorithmParameters p = c.getParameters();
 
@@ -293,12 +282,12 @@ public class Crypto {
 			throw new CryptoException("Invalid cyphertext");
 		}
 
+		final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[0]));
+		final byte[] iv = Base64.decode(split[1]);
+		final byte[] in = Base64.decode(split[2]);
+
 		try {
-			final Algorithm algorithm = Algorithm.findById(Integer.parseInt(split[0]));
-			final byte[] iv = Base64.decode(split[1]);
-			final byte[] in = Base64.decode(split[2]);
-			
-			final Cipher c = getCipher(algorithm);
+			final Cipher c = Cipher.getInstance(algorithm.cipherAlgorithm);
 			c.init(Cipher.DECRYPT_MODE, key, iv.length == 0 ? null : new IvParameterSpec(iv));
 			return c.doFinal(in);
 		}
@@ -420,13 +409,6 @@ public class Crypto {
 	public Crypto setKeyIterations(int iterations) {
 		this.keyIterations = iterations;
 		return this;
-	}
-	
-	private static Cipher getCipher(Algorithm algorithm) throws NoSuchAlgorithmException, NoSuchPaddingException {
-		if (ciphers.get().get(algorithm) == null){
-			ciphers.get().put(algorithm, Cipher.getInstance(algorithm.cipherAlgorithm));
-		}
-		return ciphers.get().get(algorithm);
 	}
 
 	public enum Algorithm {

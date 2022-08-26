@@ -3,7 +3,7 @@ package ca.digitalcave.moss.crypto;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class MossHash extends Hash {
+public class DefaultHash extends Hash {
 	
 	private String algorithm = "SHA-256";
 		
@@ -43,14 +43,14 @@ public class MossHash extends Hash {
 		final String algorithm = hash.substring(0, a);
 		final int iterations = Integer.parseInt(hash.substring(a + 1, b), 16);
 		final byte[] salt = Base64.decode(hash.substring(b + 1, c));
-		final String calc = new MossHash().setAlgorithm(algorithm).setIterations(iterations).generate(salt, message);
+		final String calc = new DefaultHash().setAlgorithm(algorithm).setIterations(iterations).generate(salt, message);
 		return hash.equals(calc);
 	}
 	
 	public String getAlgorithm() {
 		return algorithm;
 	}
-	public MossHash setAlgorithm(String algorithm) {
+	public DefaultHash setAlgorithm(String algorithm) {
 		this.algorithm = algorithm;
 		return this;
 	}
